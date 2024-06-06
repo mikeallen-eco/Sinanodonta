@@ -1,5 +1,6 @@
 # Sinanodonta
 A habitat model for the Chinese Pond Mussel (_Sinanodonta woodiana_; CPM) in North America. 
+![1280px-Sinanodonta_woodiana_01](https://github.com/mikeallen-eco/Sinanodonta/assets/32096773/e822221b-1ab2-4e9c-bd1b-649c77af558d)
 
 ### Summary
 
