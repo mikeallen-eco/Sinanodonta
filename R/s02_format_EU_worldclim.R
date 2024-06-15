@@ -5,13 +5,17 @@ library(rnaturalearth)
 library(terra)
 outpath <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/"
 
-# load europe
+# load Europe
 eu <- rnaturalearth::ne_countries(continent = "Europe", type = "countries", returnclass = "sf", 
-                                  scale = 50) %>%
-  filter(!sovereignt %in% c("Russia", "Iceland"))
+                                  scale = 10) %>%
+  filter(!sovereignt %in% c("Russia")) %>%
+  bind_rows(rnaturalearth::ne_countries(country = "Turkey", returnclass = "sf", 
+                                        scale = 10)) %>%
+  bind_rows(rnaturalearth::ne_countries(country = "Cyprus", returnclass = "sf", 
+                                        scale = 10))
 
 # Define the bounding box (xmin, ymin, xmax, ymax)
-bbox <- st_bbox(c(xmin = -25, ymin = 32, xmax = 40, ymax = 72), crs = st_crs(eu))
+bbox <- st_bbox(c(xmin = -25, ymin = 31, xmax = 45, ymax = 70), crs = st_crs(eu))
 
 # Convert the bbox to an sf object
 bbox_sf <- st_as_sfc(bbox)
@@ -61,7 +65,7 @@ df <- pts %>%
 # test plots
 plot(clipped_raster[[16]])
 plot(eu2[,"sovereignt"], add = T, color = "none")
-points(pts$lon, pts$lat, add = T, pch = 1, alpha = 0.5, col="red")
+points(pts$lon, pts$lat, pch = 1, col="red")
 
 # note: bio6 matches up exactly with the TMinCold variable provided with the data set (good)
 ggplot() +

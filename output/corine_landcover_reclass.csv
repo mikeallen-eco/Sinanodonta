@@ -1,0 +1,46 @@
+V1,V2,V3,V4,V5,V6,urban,ag,forest,grass,shrub,bare,snow,fwet,cwet,fwater,cwater
+111,230,0,77,255,Continuous urban fabric,1,0,0,0,0,0,0,0,0,0,0
+112,255,0,0,255,Discontinuous urban fabric,1,0,0,0,0,0,0,0,0,0,0
+121,204,77,242,255,Industrial or commercial units,1,0,0,0,0,0,0,0,0,0,0
+122,204,0,0,255,Road and rail networks and associated land,1,0,0,0,0,0,0,0,0,0,0
+123,230,204,204,255,Port areas,1,0,0,0,0,0,0,0,0,0,0
+124,230,204,230,255,Airports,1,0,0,0,0,0,0,0,0,0,0
+131,166,0,204,255,Mineral extraction sites,1,0,0,0,0,0,0,0,0,0,0
+132,166,77,0,255,Dump sites,1,0,0,0,0,0,0,0,0,0,0
+133,255,77,255,255,Construction sites,1,0,0,0,0,0,0,0,0,0,0
+141,255,166,255,255,Green urban areas,1,0,0,0,0,0,0,0,0,0,0
+142,255,230,255,255,Sport and leisure facilities,1,0,0,0,0,0,0,0,0,0,0
+211,255,255,168,255,Non-irrigated arable land,0,1,0,0,0,0,0,0,0,0,0
+212,255,255,0,255,Permanently irrigated land,0,1,0,0,0,0,0,0,0,0,0
+213,230,230,0,255,Rice fields,0,1,0,0,0,0,0,0,0,0,0
+221,230,128,0,255,Vineyards,0,1,0,0,0,0,0,0,0,0,0
+222,242,166,77,255,Fruit trees and berry plantations,0,1,0,0,0,0,0,0,0,0,0
+223,230,166,0,255,Olive groves,0,1,0,0,0,0,0,0,0,0,0
+231,230,230,77,255,Pastures,0,0,0,1,0,0,0,0,0,0,0
+241,255,230,166,255,Annual crops associated with permanent crops,0,1,0,0,0,0,0,0,0,0,0
+242,255,230,77,255,Complex cultivation patterns,0,1,0,0,0,0,0,0,0,0,0
+243,230,204,77,255,Land principally occupied by agriculture with significant areas of natural vegetation,0,1,0,0,0,0,0,0,0,0,0
+244,242,204,166,255,Agro-forestry areas,0,1,0,0,0,0,0,0,0,0,0
+311,128,255,0,255,Broad-leaved forest,0,0,1,0,0,0,0,0,0,0,0
+312,0,166,0,255,Coniferous forest,0,0,1,0,0,0,0,0,0,0,0
+313,77,255,0,255,Mixed forest,0,0,1,0,0,0,0,0,0,0,0
+321,204,242,77,255,Natural grasslands,0,0,0,1,0,0,0,0,0,0,0
+322,166,255,128,255,Moors and heathland,0,0,0,1,0,0,0,0,0,0,0
+323,166,230,77,255,Sclerophyllous vegetation,0,0,0,0,1,0,0,0,0,0,0
+324,166,242,0,255,Transitional woodland-shrub,0,0,0,0,1,0,0,0,0,0,0
+331,230,230,230,255,Beaches dunes sands,0,0,0,0,0,1,0,0,0,0,0
+332,204,204,204,255,Bare rocks,0,0,0,0,0,1,0,0,0,0,0
+333,204,255,204,255,Sparsely vegetated areas,0,0,0,0,0,1,0,0,0,0,0
+334,0,0,0,255,Burnt areas,0,0,0,0,0,1,0,0,0,0,0
+335,166,230,204,255,Glaciers and perpetual snow,0,0,0,0,0,0,1,0,0,0,0
+411,166,166,255,255,Inland marshes,0,0,0,0,0,0,0,1,0,0,0
+412,77,77,255,255,Peat bogs,0,0,0,0,0,0,0,1,0,0,0
+421,204,204,255,255,Salt marshes,0,0,0,0,0,0,0,0,1,0,0
+422,230,230,255,255,Salines,0,0,0,0,0,0,0,0,1,0,0
+423,166,166,230,255,Intertidal flats,0,0,0,0,0,0,0,0,1,0,0
+511,0,204,242,255,Water courses,0,0,0,0,0,0,0,0,0,1,0
+512,128,242,230,255,Water bodies,0,0,0,0,0,0,0,0,0,1,0
+521,0,255,166,255,Coastal lagoons,0,0,0,0,0,0,0,0,0,0,1
+522,166,255,230,255,Estuaries,0,0,0,0,0,0,0,0,0,0,1
+523,230,242,255,255,Sea and ocean,0,0,0,0,0,0,0,0,0,0,1
+999,255,255,255,255,NODATA,0,0,0,0,0,0,0,0,0,0,0
