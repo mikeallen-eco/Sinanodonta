@@ -1,0 +1,18 @@
+"","Value","value","urban","ag.cult","forest","grass.ag","grass.nonag","shrub","bare","snow","wet","water"
+"1",0,"Unclassified",0,0,0,0,0,0,0,0,0,0
+"2",11,"Open Water",0,0,0,0,0,0,0,0,0,1
+"3",12,"Perennial Snow/Ice",0,0,0,0,0,0,0,1,0,0
+"4",21,"Developed, Open Space",1,0,0,0,0,0,0,0,0,0
+"5",22,"Developed, Low Intensity",1,0,0,0,0,0,0,0,0,0
+"6",23,"Developed, Medium Intensity",1,0,0,0,0,0,0,0,0,0
+"7",24,"Developed, High Intensity",1,0,0,0,0,0,0,0,0,0
+"8",31,"Barren Land",0,0,0,0,0,0,1,0,0,0
+"9",41,"Deciduous Forest",0,0,1,0,0,0,0,0,0,0
+"10",42,"Evergreen Forest",0,0,1,0,0,0,0,0,0,0
+"11",43,"Mixed Forest",0,0,1,0,0,0,0,0,0,0
+"12",52,"Shrub/Scrub",0,0,0,0,0,1,0,0,0,0
+"13",71,"Herbaceous",0,0,0,0,1,0,0,0,0,0
+"14",81,"Hay/Pasture",0,0,0,1,0,0,0,0,0,0
+"15",82,"Cultivated Crops",0,1,0,0,0,0,0,0,0,0
+"16",90,"Woody Wetlands",0,0,0,0,0,0,0,0,1,0
+"17",95,"Emergent Herbaceous Wetlands",0,0,0,0,0,0,0,0,1,0

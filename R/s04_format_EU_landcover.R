@@ -11,7 +11,7 @@ legend_path <- "/Users/mikea/Documents/mikedata/cpm/202405/u2018_clc2018_v2020_2
 legend <- read.csv(legend_path, header = F)
 # set path to landcover tifs
 landcov_path <- "/Users/mikea/Documents/mikedata/cpm/202405/u2018_clc2018_v2020_20u1_raster100m/DATA/U2018_CLC2018_V2020_20u1.tif"
-Ukraine_lc_path <- "/Users/mikea/Documents/mikedata/cpm/202406/eea_r_3035_100_m_eni-clc-2018_p_2017-2019_v01_r00/TIFF/ENI2018_CLC2018_V2020_1_UA_PILOT.tif"
+# Ukraine_lc_path <- "/Users/mikea/Documents/mikedata/cpm/202406/eea_r_3035_100_m_eni-clc-2018_p_2017-2019_v01_r00/TIFF/ENI2018_CLC2018_V2020_1_UA_PILOT.tif"
 
 # map projections
 sin = "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +R=6371007.181 +units=m +no_defs"
@@ -78,13 +78,15 @@ plot(lc)
 reclass_matrix <- legend %>%
   mutate(urban = case_when(V1 %in% 111:142 ~ 1,
                            TRUE ~ 0),
-         ag = case_when(V1 %in% c(211:223, 241:244) ~ 1,
+         ag.cult = case_when(V1 %in% c(211:223, 241:244) ~ 1,
                         TRUE ~ 0),
          forest = case_when(V1 %in% 311:313 ~ 1,
                             TRUE ~ 0),
-         grass = case_when(V1 %in% c(231,321,322) ~ 1,
+         grass.nonag = case_when(V1 %in% c(321,322) ~ 1,
                            TRUE ~ 0),
-         shrub = case_when(V1 %in% c(323:324) ~ 1, # counting peat bogs as shrub
+         grass.ag = case_when(V1 %in% 231 ~ 1,
+                              TRUE ~ 0),
+         shrub = case_when(V1 %in% c(323:324) ~ 1,
                            TRUE ~ 0),
          bare = case_when(V1 %in% 331:334 ~ 1,
                           TRUE ~ 0),
@@ -110,16 +112,20 @@ urban_remat <- reclass_matrix %>%
   dplyr::select(Value, urban) %>%
   as.matrix
 
-ag_remat <- reclass_matrix %>%
-  dplyr::select(Value, ag) %>%
+ag.cult_remat <- reclass_matrix %>%
+  dplyr::select(Value, ag.cult) %>%
   as.matrix
 
 forest_remat <- reclass_matrix %>%
   dplyr::select(Value, forest) %>%
   as.matrix
 
-grass_remat <- reclass_matrix %>%
-  dplyr::select(Value, grass) %>%
+grass.nonag_remat <- reclass_matrix %>%
+  dplyr::select(Value, grass.nonag) %>%
+  as.matrix
+
+grass.ag_remat <- reclass_matrix %>%
+  dplyr::select(Value, grass.ag) %>%
   as.matrix
 
 shrub_remat <- reclass_matrix %>%
@@ -151,27 +157,28 @@ cwater_remat <- reclass_matrix %>%
   as.matrix
 
 # create individual landcover category rasters in 1/0 format (these take ~3-5 min each)
-# urban <- classify(lc, urban_remat)
-# ag <- classify(lc, ag_remat)
-# forest <- classify(lc, forest_remat)
-# grass <- classify(lc, grass_remat)
-# shrub <- classify(lc, shrub_remat)
-# bare <- classify(lc, bare_remat)
-# snow <- classify(lc, snow_remat)
-# fwet <- classify(lc, fwet_remat)
-# cwet <- classify(lc, cwet_remat)
-# fwater <- classify(lc, fwater_remat)
-# cwater <- classify(lc, cwater_remat)
+urban <- classify(lc, urban_remat)
+ag.cult <- classify(lc, ag.cult_remat)
+forest <- classify(lc, forest_remat)
+grass.nonag <- classify(lc, grass.nonag_remat)
+shrub <- classify(lc, shrub_remat)
+bare <- classify(lc, bare_remat)
+snow <- classify(lc, snow_remat)
+fwet <- classify(lc, fwet_remat)
+cwet <- classify(lc, cwet_remat)
+fwater <- classify(lc, fwater_remat)
+cwater <- classify(lc, cwater_remat)
+grass.ag <- classify(lc, grass.ag_remat)
 
-# landcov <- c(urban, ag, forest, grass, shrub, bare, snow, fwet, cwet, fwater, cwater)
-# names(landcov) <- c("urban", "ag", "forest", "grass", "shrub", "bare", "snow", "fwet", "cwet", "fwater", "cwater")
+# landcov <- c(urban, ag.cult, forest, grass.nonag, shrub, bare, snow, fwet, cwet, fwater, cwater, grass.ag)
+# names(landcov) <- c("urban", "ag.cult", "forest", "grass.nonag", "shrub", "bare", "snow", "fwet", "cwet", "fwater", "cwater", "grass.ag")
 # names(landcov)
 # plot(landcov[[3]])
-# points(st_transform(pts, crs = st_crs(urban)), col = "red")
+# points(st_transform(pts, crs = st_crs(grass.ag)), col = "red")
 
 # Save the raster stack
-# writeRaster(landcov, paste0(outpath, "europe_lc_binary.tif"), overwrite = TRUE)
-landcov <- rast(paste0(outpath, "europe_lc_binary.tif"))
+# writeRaster(landcov2, paste0(outpath, "europe_lc_binary2.tif"), overwrite = TRUE)
+landcov <- rast(paste0(outpath, "europe_lc_binary2.tif"))
                 
 # get center points for all wc raster cells and make a 2500 m buffer around each one for area calcs
 
@@ -187,17 +194,17 @@ buffers <- buffer_pts %>%
   st_buffer(., dist = 2500)
 library(tictoc)
 # extract land cover proportions 
-for(i in 7:11){ # dim(landcov)[3]){
+for(i in c(4,12)){ # dim(landcov)[3]){
 nm <- names(landcov)[i]
 message(paste0("Processing ", nm))
 tic()
 vals <- exactextractr::exact_extract(landcov[[i]], buffers, fun = 'mean')
-toc()
+# 6832.904 sec elapsed
 
 landcov.p <- wc[[1]]
 landcov.p[cells(landcov.p)] <- vals
-writeRaster(landcov.p, paste0(outpath, "europe_lc_", nm, ".tif"), overwrite = TRUE)
-
+writeRaster(landcov.p, paste0(outpath, "europe_lc_", nm, "_p2500.tif"), overwrite = TRUE)
+toc()
 }
 
 
