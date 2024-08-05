@@ -8,58 +8,74 @@ library(terra)
 # library(readxl)
 library(tictoc)
 outpath <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/"
-nj_path <- "/Users/mikea/Documents/mikedata/cpm/202405/NHD_H_New_Jersey_State_GPKG/NHD_H_New_Jersey_State_GPKG.gpkg"
-de_path <- "/Users/mikea/Documents/mikedata/cpm/202405/NHD_H_Delaware_State_GPKG/NHD_H_Delaware_State_GPKG.gpkg"
-ny_path <- "/Users/mikea/Documents/mikedata/cpm/202405/NHD_H_New_York_State_GPKG/NHD_H_New_York_State_GPKG.gpkg"
-pa_path <- "/Users/mikea/Documents/mikedata/cpm/202405/NHD_H_Pennsylvania_State_GPKG/NHD_H_Pennsylvania_State_GPKG.gpkg"
-dws_path <- "/Users/mikea/Documents/mikedata/cpm/202406/drbbnd/drb_bnd_polygon.shp"
+iw_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/inlandwater.gpkg"
+s1_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_1.gpkg"
+s2_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_2.gpkg"
+s3_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_3.gpkg"
+s4_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_4.gpkg"
+s5_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_5.gpkg"
+s6_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_6.gpkg"
+s7_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_7.gpkg"
+s8_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_8.gpkg"
+s9_path <- "/Users/mikea/Documents/mikedata/cpm/202405/EUHYDRO/strahler_9.gpkg"
 sin = "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +R=6371007.181 +units=m +no_defs"
 # set path to landcover tifs
-landcov_path <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/conus_lc_snow_binary.tif"
-wc_path <- paste0(outpath, "conus_wc.tif")
+landcov_path <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/europe_lc_binary2.tif"
+wc_path <- paste0(outpath, "europe_wc.tif")
 
-# read in the Del Watershed boundary
-dws <- read_sf(dws_path) %>%
-  st_transform(crs = sin)
+# Make box for testing
+coords <- matrix(c(-9, 37.2, # upper left
+                   -8.6, 37.2, # upper right
+                   -8.6, 37.06, # lower right
+                   -9, 37.06, # lower left
+                   -9, 37.2), ncol = 2, byrow = TRUE) # upper left
+# Create a polygon object
+polygon <- st_polygon(list(coords))
+# # Convert to an sf object
+bbox <- st_sfc(polygon, crs = 4326)  # Specify the CRS (EPSG:4326 for WGS84)
 
-dws_buffer <- dws %>%
-  st_buffer(dist = 5000) %>%
+st_layers(iw_path)
+
+# inland waters
+iw <- read_sf(iw_path) 
+
+iw1 <- iw %>%
+  st_cast("MULTIPOLYGON") %>%
+  st_zm(drop = TRUE, what = "ZM") %>% 
+  st_geometry() %>%
+  st_simplify(dTolerance = 5) %>% 
   st_transform(crs = 4326)
 
-# Make Readington box for testing
-# coords <- matrix(c(-74.856902, 40.635823,
-#                    -74.692466, 40.635823,
-#                    -74.692466, 40.517249,
-#                    -74.856902, 40.517249,
-#                    -74.856902, 40.635823), ncol = 2, byrow = TRUE)
-# Create a polygon object
-# polygon <- st_polygon(list(coords))
-# # Convert to an sf object
-# bbox <- st_sfc(polygon, crs = 4326)  # Specify the CRS (EPSG:4326 for WGS84)
+iw2 <- iw1 %>%
+  st_intersection(., bbox)
 
-# New Jersey
-# Flowline
-nj_fline <- read_sf(nj_path, layer = "NHDFlowline") %>%
-  st_zm(drop = TRUE, what = "ZM") %>%
+plot(iw6)
+
+# Strahler 1
+s1 <- read_sf(s1_path) 
+
+s2 <- s1 %>%
+  st_cast("MULTILINESTRING") %>%
+  st_zm(drop = TRUE, what = "ZM")
+
+s3 <- s2 %>% 
+  st_geometry() %>%
+  st_simplify(dTolerance = 100) # confirmed 100 m is reasonable tolerance by mapping smaller area
+
+s4 <- s3 %>% 
   st_transform(crs = 4326) %>%
-  st_intersection(., dws_buffer) %>%
-  st_geometry()
+  st_intersection(., bbox)
 
-# Line
-nj_line <- read_sf(nj_path, layer = "NHDLine") %>%
-  st_zm(drop = TRUE, what = "ZM") %>%
-  st_transform(crs = 4326) %>%
-  st_intersection(., dws_buffer) %>%
-  st_geometry()
+plot(s4, add = T, col = "red")
 
-# Area
+# Strahler 2
 nj_area <- read_sf(nj_path, layer = "NHDArea") %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   st_transform(crs = 4326) %>%
   st_intersection(., dws_buffer) %>%
   st_geometry()
 
-# Waterbodies
+# Strahler 3
 nj_waterbody <- read_sf(nj_path, layer = "NHDWaterbody") %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   st_transform(crs = 4326) %>%
@@ -208,7 +224,7 @@ de_waterbody <- read_sf(de_path, layer = "NHDWaterbody") %>%
   # geom_sf(data = de_waterbody, fill = "firebrick") +
   # theme_bw()
 
-# read in conus landcover raster
+# read in conus worldclim & landcover rasters and geology shapefile
 lc <- rast(landcov_path)
 
 dist_temp <- lc %>%

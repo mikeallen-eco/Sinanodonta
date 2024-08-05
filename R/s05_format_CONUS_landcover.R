@@ -150,7 +150,7 @@ names(landcov) <- c("grass.ag", "grass.nonag", "shrub", "bare", "snow", "wet", "
 names(landcov)
 plot(landcov[[1]])         
 
-# get center points for all wc raster cells and make a 2500 m buffer around each one for area calcs
+# get center points for all wc raster cells and make a 1500 m buffer around each one for area calcs
 
 # Get the coordinates of the center of each non-NA cell for the worldclim raster
 buffer_pts = terra::xyFromCell(wc[[1]], cells(wc[[1]])) %>%
@@ -161,7 +161,7 @@ buffer_pts = terra::xyFromCell(wc[[1]], cells(wc[[1]])) %>%
   st_transform(crs = st_crs(landcov))
 
 buffers <- buffer_pts %>%
-  st_buffer(., dist = 2500)
+  st_buffer(., dist = 1500)
 
 # extract land cover proportions 
 for(i in 1:dim(landcov)[3]){ 
@@ -173,7 +173,7 @@ for(i in 1:dim(landcov)[3]){
   
   landcov.p <- wc[[1]]
   landcov.p[cells(landcov.p)] <- vals
-  writeRaster(landcov.p, paste0(outpath, "conus_lc_", nm, "_p2500.tif"), overwrite = TRUE)
+  writeRaster(landcov.p, paste0(outpath, "conus_lc_", nm, "_p1500.tif"), overwrite = TRUE)
   
 }
 
