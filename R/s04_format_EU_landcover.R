@@ -191,7 +191,7 @@ buffer_pts = terra::xyFromCell(wc[[1]], cells(wc[[1]])) %>%
   st_transform(crs = st_crs(landcov))
 
 buffers <- buffer_pts %>%
-  st_buffer(., dist = 2500)
+  st_buffer(., dist = 1500)
 library(tictoc)
 # extract land cover proportions 
 for(i in c(4,12)){ # dim(landcov)[3]){
@@ -203,7 +203,7 @@ vals <- exactextractr::exact_extract(landcov[[i]], buffers, fun = 'mean')
 
 landcov.p <- wc[[1]]
 landcov.p[cells(landcov.p)] <- vals
-writeRaster(landcov.p, paste0(outpath, "europe_lc_", nm, "_p2500.tif"), overwrite = TRUE)
+writeRaster(landcov.p, paste0(outpath, "europe_lc_", nm, "_p1500.tif"), overwrite = TRUE)
 toc()
 }
 
