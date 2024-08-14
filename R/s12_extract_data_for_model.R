@@ -6,6 +6,8 @@ library(terra)
 library(readxl)
 outpath <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/"
 wc_path <- paste0(outpath, "europe_wc.tif")
+geo_path <- paste0(outpath, "europe_geology.tif")
+elev_path <- paste0(outpath, "europe_elev.tif")
 
 # load Europe
 source("R/load_Europe.R")
@@ -26,7 +28,6 @@ pts <- cenv %>%
 ### read in EUROPE covariate data and make into a single rasterstack
 wc <- rast(wc_path)
 
-
 # format landcover rasters
 
 lc_for <- rast(paste0(outpath, "europe_lc_forest_p1500.tif"))
@@ -44,20 +45,24 @@ names(lc_wet) <- "wet_p1500m"
 lc_urban <- rast(paste0(outpath, "europe_lc_urban_p1500.tif"))
 names(lc_urban) <- "urban_p1500m"
 
-raster_stack <- c(wc, lc_for, lc_grass, lc_ag, lc_bare, lc_wet, lc_urban) 
-names(raster_stack)[1:19] <- c("bio1", "bio10", "bio11", "bio12", "bio13",
+# read in geology and elevation rasters 
+geo <- rast(geo_path)
+elev <- rast(elev_path)
+
+raster_stack <- c(wc, lc_for, lc_grass, lc_ag, lc_bare, lc_wet, lc_urban, geo, elev) 
+names(raster_stack)[c(1:19,30)] <- c("bio1", "bio10", "bio11", "bio12", "bio13",
                                "bio14", "bio15", "bio16", "bio17", "bio18",
                                "bio19", "bio2", "bio3", "bio4", "bio5", 
-                               "bio6", "bio7", "bio8", "bio9")
+                               "bio6", "bio7", "bio8", "bio9", "elev")
 names(raster_stack)
-# writeRaster(raster_stack, paste0(outpath, "europe_final_raster_stack.tif"))
+# writeRaster(raster_stack, paste0(outpath, "europe_final_raster_stack.tif"), overwrite=TRUE)
 
 ### exctract environmental covariate values from EUROPE raster stack
 values <- terra::extract(raster_stack, vect(pts))
 
 # test plots
-plot(raster_stack[[16]])
-plot(eu2[,"sovereignt"], add = T, color = "none")
+plot(raster_stack[[20]])
+plot(eu2[,"sovereignt"], add = T, color = "none", border="red")
 plot(pts[, "OProb"], add = T)
 
 # make final dataframe for modeling
@@ -65,7 +70,7 @@ env <- pts %>%
   left_join(values, by = join_by(ID)) 
 
 env_df <- env %>%
-  dplyr::select(lat, lon, Elev, GeoNew, bio1:urban_p1500m) %>%
+  dplyr::select(lat, lon, elev, CR, SF, KA, SP, bio1:urban_p1500m) %>%
   st_drop_geometry() %>%
   as.data.frame()
 

@@ -169,7 +169,7 @@ table(wgeo$cat)
 
 # writing formatted world geology file
 message("Writing world geology file...")
-write_sf(wgeo, "/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/geology_europe_lowres.gpkg")
+# write_sf(wgeo, "/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/geology_europe_lowres.gpkg")
 
 message("Recoding Europe geology file into 4 simple categories...")
 eu_hi <- read_sf("/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/Europe_GISEurope_1500K_BedrockAge.L_formatted.gpkg")  %>%
@@ -221,7 +221,8 @@ eu_fin <- eu_fin[!st_is_empty(eu_fin), ]
 
 head(eu_fin)
 table(eu_fin$cat); object.size(eu_fin)
-write_sf(eu_fin, "/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/geology_europe_final.gpkg")
+# write_sf(eu_fin, "/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/geology_europe_final.gpkg")
+eu_fin <- read_sf("/Users/mikea/Documents/mikedata/cpm/202406/Geology_EU/geology_europe_final.gpkg")
 
 eu_fin_simp <- eu_fin %>%
   st_simplify(dTolerance = 1000)
@@ -240,175 +241,198 @@ points <- read.csv("data/final_EU_cpm_data.csv") %>%
            crs = 4326) 
 
 points_with_attributes <- st_join(points, eu_fin, left = TRUE)
-write_sf(points_with_attributes, "data/Swood_points_w_geology_attributes.gpkg")  
+# write_sf(points_with_attributes, "data/Swood_points_w_geology_attributes.gpkg")  
 
 # make EU final geology categorical raster
 # Create a new numeric field in the polygon data for categorical values
-library(sp)
-# eu_fin_sp <- as(dplyr::select(eu_fin, cat), "Spatial")
 eu_fin_vect <- terra::vect(eu_fin)
+eu_fin_vect <- terra::vect(st_transform(eu_fin, crs = st_crs(lc))) ### TEST
 eu_fin_vect$type_code <- as.numeric(factor(eu_fin_vect$cat, levels = c("CR", "SP", "SF", "KA")))
 
-# Rasterize the polygon based on the numeric codes without the `touches` option
-geo.r <- rasterize(eu_fin_vect, rast(wc_path)[[1]], field = "type_code", 
+# Rasterize the polygon based on the numeric codes
+geo.r <- rasterize(eu_fin_vect, lc, field = "type_code", 
                    touches = F)
+
 # Assign the categorical levels to the raster
 levels(geo.r) <- data.frame(ID = 1:4, category = c("CR", "SP", "SF", "KA"))
-plot(geo.r)
 
-# writeRaster(geo.r, paste0(outpath, "europe_geology.tif"))
+geo.r.fin <- project(geo.r, wc, method = "mode")
+plot(geo.r.fin)
 
-test <- extract(geo.r, vect(points_with_attributes), na.rm = T)
+geo.r.fin2 <- geo.r.fin %>%
+  crop(wc) %>%
+  mask(wc)
+levels(geo.r.fin2) <- data.frame(ID = 1:4, category = c("CR", "SP", "SF", "KA"))
+plot(geo.r.fin2)
 
-test2 <- cbind(points_with_attributes, test)
+# writeRaster(geo.r.fin2, paste0(outpath, "europe_geology_cat.tif"))
 
-plot(wc[[1]])
-plot(ue[,"LITHO_EN"], add = T)
-class(wgeo)
+cat_raster <- geo.r.fin2
+levels <- unique(values(cat_raster))
 
-head(wgeo)
-table(wgeo$LITHO_EN)
-table(wgeo$DESCR_EN)
+binary_rasters <- lapply(levels[3:6], function(level) {
+  binary_raster <- cat_raster == level
+  binary_raster <- binary_raster*1
+  the_name <- levels(geo.r.fin2)[[1]][level,2]
+  names(binary_raster) <- the_name  # Name the layer with the level
+  return(binary_raster)
+}); binary_rasters
 
-                               
-table(wgeo.c$cat); sum(is.na(wgeo.c$cat))
-wgeo.c.dis <- wgeo.c %>%
-  group_by(cat) %>%
-  summarize(geometry = st_union(geom), .groups = "drop")
+finr <- rast(binary_rasters)
+plot(finr[[4]])
 
-
-
-geo.all <- geo.c.dis %>%
-  st_union(wgeo.c.dis)
-
-ggplot() +
-  geom_sf(data = geo.all, aes(fill = cat)) +
-  geom_sf(data = eu, fill = "transparent", color = "red")
-
-# Example points data
-points_sf <- st_as_sf(data.frame(
-  id = 1:3,
-  lon = c(10, 12, 14),
-  lat = c(45, 47, 49)
-), coords = c("lon", "lat"), crs = 4326)
-
-# Spatial join: attach polygon attributes to points
-joined_data <- st_join(points_sf, geodata)
-
-# Extract specific attribute (replace 'attribute_name' with actual attribute name)
-extracted_values <- joined_data$attribute_name
-
-# View results
-print(joined_data)
-print(extracted_values)
+writeRaster(finr, paste0(outpath, "europe_geology.tif"), overwrite = TRUE)
 
 
 
+# old below here
 
-# convert geology shapefile to raster (same extent/projection/resolution as landcover)
-tic()
-geo_vect <- vect(geo)
-geo.r <- terra::rasterize(geo_vect, lc, field = "CMMI_Class2")
-writeRaster(geo.r, paste0(outpath, "conus_geology.tif"), overwrite = TRUE)
-toc() # 1353.884 sec elapsed
-
-# to examine components of each CMMI Class
-unique(geo[geo$CMMI_Class=="Other_Melange",]$UNIT_NAME)
-unique(geo[geo$CMMI_Class=="Other_Unknown",]$UNIT_NAME)
-unique(geo[geo$CMMI_Class=="Other_Unconsolidated",]$UNIT_NAME)
-unique(geo[geo$CMMI_Class=="Sedimentary_Chemical",]$UNIT_NAME)
-unique(geo[geo$CMMI_Class=="Sedimentary_Chemical_Evaporite",]$UNIT_NAME)
-
-# make reclassification table to collapse categories
-reclass_df <- geo %>%
-  as.data.frame() %>%
-  select(class = CMMI_Class, value = CMMI_Class2) %>%
-  distinct() %>%
-  mutate(chrystaline = case_when(grepl(class, pattern = "Igneous_|Metamorphic_") ~ 1,
-                                TRUE ~ 0),
-         sed.porous = case_when(grepl(class, pattern = "Other_Unconsolidated") ~ 1,
-                                 TRUE ~ 0),
-         sed.fract = case_when(grepl(class, pattern = "Other_Melange|Sedimentary_Siliciclastic") ~ 1,
-                               class %in% "Sedimentary_Chemical" ~ 1,
-                                TRUE ~ 0),
-         karst = case_when(grepl(class, pattern = "Sedimentary_Chemical_") ~ 1,
-                               TRUE ~ 0),
-         unknown = case_when(grepl(class, pattern = "Other_Unknown") ~ 1,
-                           TRUE ~ 0))
-
-# write.csv(reclass_df, "output/conus_geology_reclass.csv")
-
-# make final reclassification matrices
-chrystaline_remat <- reclass_df %>%
-  dplyr::select(value, chrystaline) %>%
-  as.matrix
-
-sed.porous_remat <- reclass_df %>%
-  dplyr::select(value, sed.porous) %>%
-  as.matrix
-
-sed.fract_remat <- reclass_df %>%
-  dplyr::select(value, sed.fract) %>%
-  as.matrix
-
-karst_remat <- reclass_df %>%
-  dplyr::select(value, karst) %>%
-  as.matrix
-
-unknown_remat <- reclass_df %>%
-  dplyr::select(value, unknown) %>%
-  as.matrix
-
-# read in rasterized geology data
-geo.r <- rast(paste0(outpath, "conus_geology.tif"))
-
-# reclassify geology raster into binary rasters by collapsed category (~ 30 min total run time)
-tic()
-chrystaline <- classify(geo.r, chrystaline_remat)
-toc() # 398.996 sec elapsed
-sed.porous <- classify(geo.r, sed.porous_remat)
-sed.fract <- classify(geo.r, sed.fract_remat)
-karst <- classify(geo.r, karst_remat)
-tic()
-unknown <- classify(geo.r, unknown_remat)
-toc() # 344.197 sec elapsed
-tic()
-writeRaster(unknown, paste0(outpath, "conus_geology_unknown_binary.tif"), overwrite = TRUE)
-toc() # 243.425 sec elapsed
-geo.r.binary <- c(chrystaline, sed.porous, sed.fract, karst)
-names(geo.r.binary) <- c("chrystaline", "sed.porous", "sed.fract", "karst")
-tic()
-# writeRaster(geo.r.binary, paste0(outpath, "conus_geology_binary.tif"), overwrite = TRUE)
-toc() # 1269.585 sec elapsed
-
-# get center points for all wc raster cells and make a 2500 m buffer around each one for area calcs
-
-# Get the coordinates of the center of each non-NA cell for the worldclim raster
-buffer_pts = terra::xyFromCell(wc[[1]], cells(wc[[1]])) %>%
-  as.data.frame() %>%
-  mutate(lon = x, lat = y) %>%
-  st_as_sf(., coords = c("x", "y"), crs = st_crs(wc)) %>%
-  # project to sinusoidal projection in meters
-  st_transform(crs = st_crs(lc))
-
-tic()
-buffers <- buffer_pts %>%
-  st_buffer(., dist = 2500)
-toc() # 9.21 sec elapsed
-
-# extract surface geology proportions 
-
-# load binary geology raster stack
-geo.r.binary <- rast(paste0(outpath, "conus_geology_binary.tif"))
-
-for(i in 4:dim(geo.r.binary)[3]){ 
-  nm <- names(geo.r.binary)[i]
-  message(paste0("Processing ", i, " of ", dim(geo.r.binary)[3], ": ", nm))
-  tic()
-  vals <- exactextractr::exact_extract(geo.r.binary[[i]], buffers, fun = 'mean')
-  
-  geology.p <- wc[[1]]
-  geology.p[cells(geology.p)] <- vals
-  writeRaster(geology.p, paste0(outpath, "conus_geology_", nm, "_p2500.tif"), overwrite = TRUE)
-  toc() # 16626.6 sec elapsed
-}
+# plot(wc[[1]])
+# class(wgeo)
+# 
+# head(wgeo)
+# table(wgeo$LITHO_EN)
+# table(wgeo$DESCR_EN)
+# 
+#                                
+# table(wgeo.c$cat); sum(is.na(wgeo.c$cat))
+# wgeo.c.dis <- wgeo.c %>%
+#   group_by(cat) %>%
+#   summarize(geometry = st_union(geom), .groups = "drop")
+# 
+# 
+# 
+# geo.all <- geo.c.dis %>%
+#   st_union(wgeo.c.dis)
+# 
+# ggplot() +
+#   geom_sf(data = geo.all, aes(fill = cat)) +
+#   geom_sf(data = eu, fill = "transparent", color = "red")
+# 
+# # Example points data
+# points_sf <- st_as_sf(data.frame(
+#   id = 1:3,
+#   lon = c(10, 12, 14),
+#   lat = c(45, 47, 49)
+# ), coords = c("lon", "lat"), crs = 4326)
+# 
+# # Spatial join: attach polygon attributes to points
+# joined_data <- st_join(points_sf, geodata)
+# 
+# # Extract specific attribute (replace 'attribute_name' with actual attribute name)
+# extracted_values <- joined_data$attribute_name
+# 
+# # View results
+# print(joined_data)
+# print(extracted_values)
+# 
+# 
+# 
+# 
+# # convert geology shapefile to raster (same extent/projection/resolution as landcover)
+# tic()
+# geo_vect <- vect(geo)
+# geo.r <- terra::rasterize(geo_vect, lc, field = "CMMI_Class2")
+# writeRaster(geo.r, paste0(outpath, "conus_geology.tif"), overwrite = TRUE)
+# toc() # 1353.884 sec elapsed
+# 
+# # to examine components of each CMMI Class
+# unique(geo[geo$CMMI_Class=="Other_Melange",]$UNIT_NAME)
+# unique(geo[geo$CMMI_Class=="Other_Unknown",]$UNIT_NAME)
+# unique(geo[geo$CMMI_Class=="Other_Unconsolidated",]$UNIT_NAME)
+# unique(geo[geo$CMMI_Class=="Sedimentary_Chemical",]$UNIT_NAME)
+# unique(geo[geo$CMMI_Class=="Sedimentary_Chemical_Evaporite",]$UNIT_NAME)
+# 
+# # make reclassification table to collapse categories
+# reclass_df <- geo %>%
+#   as.data.frame() %>%
+#   select(class = CMMI_Class, value = CMMI_Class2) %>%
+#   distinct() %>%
+#   mutate(chrystaline = case_when(grepl(class, pattern = "Igneous_|Metamorphic_") ~ 1,
+#                                 TRUE ~ 0),
+#          sed.porous = case_when(grepl(class, pattern = "Other_Unconsolidated") ~ 1,
+#                                  TRUE ~ 0),
+#          sed.fract = case_when(grepl(class, pattern = "Other_Melange|Sedimentary_Siliciclastic") ~ 1,
+#                                class %in% "Sedimentary_Chemical" ~ 1,
+#                                 TRUE ~ 0),
+#          karst = case_when(grepl(class, pattern = "Sedimentary_Chemical_") ~ 1,
+#                                TRUE ~ 0),
+#          unknown = case_when(grepl(class, pattern = "Other_Unknown") ~ 1,
+#                            TRUE ~ 0))
+# 
+# # write.csv(reclass_df, "output/conus_geology_reclass.csv")
+# 
+# # make final reclassification matrices
+# chrystaline_remat <- reclass_df %>%
+#   dplyr::select(value, chrystaline) %>%
+#   as.matrix
+# 
+# sed.porous_remat <- reclass_df %>%
+#   dplyr::select(value, sed.porous) %>%
+#   as.matrix
+# 
+# sed.fract_remat <- reclass_df %>%
+#   dplyr::select(value, sed.fract) %>%
+#   as.matrix
+# 
+# karst_remat <- reclass_df %>%
+#   dplyr::select(value, karst) %>%
+#   as.matrix
+# 
+# unknown_remat <- reclass_df %>%
+#   dplyr::select(value, unknown) %>%
+#   as.matrix
+# 
+# # read in rasterized geology data
+# geo.r <- rast(paste0(outpath, "conus_geology.tif"))
+# 
+# # reclassify geology raster into binary rasters by collapsed category (~ 30 min total run time)
+# tic()
+# chrystaline <- classify(geo.r, chrystaline_remat)
+# toc() # 398.996 sec elapsed
+# sed.porous <- classify(geo.r, sed.porous_remat)
+# sed.fract <- classify(geo.r, sed.fract_remat)
+# karst <- classify(geo.r, karst_remat)
+# tic()
+# unknown <- classify(geo.r, unknown_remat)
+# toc() # 344.197 sec elapsed
+# tic()
+# writeRaster(unknown, paste0(outpath, "conus_geology_unknown_binary.tif"), overwrite = TRUE)
+# toc() # 243.425 sec elapsed
+# geo.r.binary <- c(chrystaline, sed.porous, sed.fract, karst)
+# names(geo.r.binary) <- c("chrystaline", "sed.porous", "sed.fract", "karst")
+# tic()
+# # writeRaster(geo.r.binary, paste0(outpath, "conus_geology_binary.tif"), overwrite = TRUE)
+# toc() # 1269.585 sec elapsed
+# 
+# # get center points for all wc raster cells and make a 2500 m buffer around each one for area calcs
+# 
+# # Get the coordinates of the center of each non-NA cell for the worldclim raster
+# buffer_pts = terra::xyFromCell(wc[[1]], cells(wc[[1]])) %>%
+#   as.data.frame() %>%
+#   mutate(lon = x, lat = y) %>%
+#   st_as_sf(., coords = c("x", "y"), crs = st_crs(wc)) %>%
+#   # project to sinusoidal projection in meters
+#   st_transform(crs = st_crs(lc))
+# 
+# tic()
+# buffers <- buffer_pts %>%
+#   st_buffer(., dist = 2500)
+# toc() # 9.21 sec elapsed
+# 
+# # extract surface geology proportions 
+# 
+# # load binary geology raster stack
+# geo.r.binary <- rast(paste0(outpath, "conus_geology_binary.tif"))
+# 
+# for(i in 4:dim(geo.r.binary)[3]){ 
+#   nm <- names(geo.r.binary)[i]
+#   message(paste0("Processing ", i, " of ", dim(geo.r.binary)[3], ": ", nm))
+#   tic()
+#   vals <- exactextractr::exact_extract(geo.r.binary[[i]], buffers, fun = 'mean')
+#   
+#   geology.p <- wc[[1]]
+#   geology.p[cells(geology.p)] <- vals
+#   writeRaster(geology.p, paste0(outpath, "conus_geology_", nm, "_p2500.tif"), overwrite = TRUE)
+#   toc() # 16626.6 sec elapsed
+# }
