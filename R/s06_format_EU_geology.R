@@ -285,6 +285,11 @@ writeRaster(finr, paste0(outpath, "europe_geology.tif"), overwrite = TRUE)
 
 
 
+
+
+
+
+
 # old below here
 
 # plot(wc[[1]])

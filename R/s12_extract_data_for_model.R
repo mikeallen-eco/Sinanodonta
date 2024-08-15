@@ -8,6 +8,7 @@ outpath <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/"
 wc_path <- paste0(outpath, "europe_wc.tif")
 geo_path <- paste0(outpath, "europe_geology.tif")
 elev_path <- paste0(outpath, "europe_elev.tif")
+water_path <- "/Users/mikea/Documents/mikedata/cpm/202406/finaldata/europe_dist_w_mean_1500m.tif"
 
 # load Europe
 source("R/load_Europe.R")
@@ -32,9 +33,9 @@ wc <- rast(wc_path)
 
 lc_for <- rast(paste0(outpath, "europe_lc_forest_p1500.tif"))
 names(lc_for) <- "forest_p1500m"
-lc_grass <- rast(paste0(outpath, "europe_lc_grass.nonag_p2500.tif"))
+lc_grass <- rast(paste0(outpath, "europe_lc_grass.nonag_p1500.tif"))
 names(lc_grass) <- "grass_p1500m"
-lc_ag <- rast(paste0(outpath, "europe_lc_grass.ag_p1500.tif")) + 
+lc_ag <- rast(paste0(outpath, "europe_lc_ag.cult_p1500.tif")) + 
     rast(paste0(outpath, "europe_lc_grass.ag_p1500.tif"))
 names(lc_ag) <- "ag_p1500m"
 lc_bare <- rast(paste0(outpath, "europe_lc_bare_p1500.tif"))
@@ -48,8 +49,10 @@ names(lc_urban) <- "urban_p1500m"
 # read in geology and elevation rasters 
 geo <- rast(geo_path)
 elev <- rast(elev_path)
+water <- rast(water_path)
 
-raster_stack <- c(wc, lc_for, lc_grass, lc_ag, lc_bare, lc_wet, lc_urban, geo, elev) 
+raster_stack <- c(wc, lc_for, lc_grass, lc_ag, lc_bare, lc_wet, lc_urban, geo, elev, water) 
+names(raster_stack)
 names(raster_stack)[c(1:19,30)] <- c("bio1", "bio10", "bio11", "bio12", "bio13",
                                "bio14", "bio15", "bio16", "bio17", "bio18",
                                "bio19", "bio2", "bio3", "bio4", "bio5", 
@@ -70,7 +73,7 @@ env <- pts %>%
   left_join(values, by = join_by(ID)) 
 
 env_df <- env %>%
-  dplyr::select(lat, lon, elev, CR, SF, KA, SP, bio1:urban_p1500m) %>%
+  dplyr::select(lat, lon, elev, dist_water, CR, SF, KA, SP, bio1:urban_p1500m) %>%
   st_drop_geometry() %>%
   as.data.frame()
 
