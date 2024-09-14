@@ -37,6 +37,8 @@ The data and model structure were based on a European habitat suitability model 
 
 [National Land Cover Database (USGS, 2021)](https://www.usgs.gov/centers/eros/science/national-land-cover-database)
 
+[USGS - Shapefile of geology - conterminous U.S.](https://www.sciencebase.gov/catalog/item/623a013ed34e915b67cddcfa)
+
 [National Hydrography Dataset (USGS)](https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHD/State/GPKG/)
 
 [Elevation](https://www.worldclim.org/data/worldclim21.html)
