@@ -174,22 +174,22 @@ random_points_list.us <- lapply(1:nrow(us),
 random_points.eu <- do.call(rbind, random_points_list.eu)
 random_points.us <- do.call(rbind, random_points_list.us)
 
-eu_env <- cbind(select(random_points.eu, name = sovereignt, name2 = abbrev), 
+eu_env <- cbind(dplyr::select(random_points.eu, name = sovereignt, name2 = abbrev), 
                 extract(env.eu, random_points.eu)) %>%
-  select(-ID, -dist_water) %>%
+  dplyr::select(-ID, -dist_water) %>%
   st_drop_geometry() %>%
   as.data.frame() %>%
   ungroup()
 
-us_env <- cbind(select(random_points.us, name, name2 = postal), 
+us_env <- cbind(dplyr::select(random_points.us, name, name2 = postal), 
                 extract(env.us, random_points.us)) %>%
-  select(-ID, -dist_water) %>%
+  dplyr::select(-ID, -dist_water) %>%
   st_drop_geometry() %>%
   as.data.frame() %>%
   ungroup()
 
 cpm_env <- extract(env.eu, points) %>%
-  select(-ID, -dist_water) %>%
+  dplyr::select(-ID, -dist_water) %>%
   st_drop_geometry() %>%
   as.data.frame() %>%
   mutate(name = "Sinanodonta", name2 = "CPM")
@@ -224,10 +224,10 @@ comb.env.plot %>%
   scale_color_manual(values = c("black", "orangered")) +
   # guides(color = "none") +
   theme_bw() +
-  labs(x = "Mean temperature (C)", y = "Median elevation (m)", color = "Surface geology") +
+  labs(x = "Mean temperature in warmest quarter (C)", y = "Median elevation (m)", color = "Surface geology") +
   theme(legend.position = c(.85, .85))
 
-ggsave("figures/top_variables_overallmeantemp.png", width = 8, height = 4, dpi = 400)  
+ggsave("figures/top_variables_overallmeantemp_fewerBioclim_fewerBioclim.png.png", width = 8, height = 4, dpi = 400)  
 
 # same plot but closer up
 comb.env.plot %>%
@@ -235,24 +235,26 @@ comb.env.plot %>%
   mutate(surf = ifelse(SP %in% 1, "Mostly sand,\nsediments",
                        "Mostly rock")) %>%
   ggplot() +
-  geom_point(aes(x = bio1, y = elev), color = "darkgray", 
+  geom_point(aes(x = bio10, y = elev), color = "darkgray", 
              data = filter(comb.env.plot, abr %in% "CPM"),
              alpha = 0.5) +
   stat_ellipse(data = filter(comb.env.plot, abr %in% "CPM"), 
-               aes(x = bio1, y = elev), 
+               aes(x = bio10, y = elev), 
                color = "black", size = 1, linetype = 2, alpha = 0.75) +
-  geom_text(aes(x = bio1, y = elev, label = abr, color = surf),
+  geom_text(aes(x = bio10, y = elev, label = abr, color = surf),
             size = 3) +
   # scale_color_viridis_c(direction = -1) # if using "median" above
   scale_color_manual(values = c("black", "orangered")) +
-  scale_x_continuous(limits = c(4, 20)) +
-  scale_y_continuous(limits = c(0, 400)) +
+  # scale_x_continuous(limits = c(4, 20)) + # for bio1
+  # scale_y_continuous(limits = c(0, 400)) + # for bio1
+  scale_x_continuous(limits = c(15, 27.5)) + # for bio10
+  scale_y_continuous(limits = c(0, 400)) + # for bio10
   # guides(color = "none") +
   theme_bw() +
-  labs(x = "Mean temperature (C)", y = "Median elevation (m)", color = "Surface geology") +
+  labs(x = "Mean temperature of the warmest quarter (C)", y = "Median elevation (m)", color = "Surface geology") +
   theme(legend.position = c(.85, .85))
 
-ggsave("figures/top_variables_overallmeantemp_closeup.png", width = 8, height = 4, dpi = 400)  
+ggsave("figures/top_variables_overallmeantemp_closeup_fewerBioclim.png", width = 8, height = 4, dpi = 400)  
 
 
 ####
