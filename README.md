@@ -19,7 +19,9 @@ A version of the resulting habitat suitability map can be viewed in a recent pos
 
 ### Environmental data sources for fitting
 
-[Wordclim bioclimatic variables](https://www.worldclim.org/data/bioclim.html)
+The data and model structure were based on a European habitat suitability model developed by Mehler et al. (2024). 
+
+[Wordclim bioclimatic variables](https://www.worldclim.org/data/worldclim21.html)
 
 [Corine Land Cover (Europe)](https://land.copernicus.eu/en/products/corine-land-cover)
 
@@ -27,13 +29,7 @@ A version of the resulting habitat suitability map can be viewed in a recent pos
 
 [EU-Hydro River Network Database 2006-2012](https://doi.org/10.2909/393359a7-7ebd-4a52-80ac-1a18d5f3db9c)
 
-[Port locations (Eurostat)](https://ec.europa.eu/eurostat/web/gisco/geodata/transport-networks)
-
-Elevation, derived from DEM
-
-TWI	Topographic Wetness Index, derived from DEM
-
-SPI	Stream Power Index, derived from DEM
+[Elevation](https://www.worldclim.org/data/worldclim21.html)
 
 ### Environmental data sources for prediction
 
@@ -43,14 +39,20 @@ SPI	Stream Power Index, derived from DEM
 
 [National Hydrography Dataset (USGS)](https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHD/State/GPKG/)
 
-[Port locations (USGS)](https://www.sciencebase.gov/catalog/item/5947f4a6e4b062508e34429b)
+[Elevation](https://www.worldclim.org/data/worldclim21.html)
 
-Elevation, derived from DEM
+### Other potential data to incorporate
+
+[Port locations (Eurostat)](https://ec.europa.eu/eurostat/web/gisco/geodata/transport-networks)
+
+[Port locations (USGS)](https://www.sciencebase.gov/catalog/item/5947f4a6e4b062508e34429b)
 
 TWI	Topographic Wetness Index, derived from DEM
 
 SPI	Stream Power Index, derived from DEM
 
-## Literature cited
+### Literature cited
 
 Bogan, A.E., et al. (2011). The first confirmed record of the Chinese pond mussel (Sinanodonta woodiana)(Bivalvia: Unionidae) in the United States. Nautilus, 125(1), 41-43.
+
+Mehler, K., Labecka, A. M., Sirbu, I. N., Flores, N. Y., Leuven, R. S., & Collas, F. P. (2024). Recent and future distribution of the alien Chinese pond mussel Sinanodonta woodiana (Lea, 1834) on the European continent. Aquatic Invasions, 19(1), 51-72.
